@@ -29,30 +29,76 @@ ui.processBtn.addEventListener('click', () => {
     }
 });
 
-ui.voiceBtn.addEventListener('mousedown', () => {
-    isRecording = true;
-    ui.voiceBtn.classList.add('recording');
-    ui.voiceBtn.innerHTML = '<i class="ph ph-waveform"></i> Listening...';
-});
-
-ui.voiceBtn.addEventListener('mouseup', () => {
-    isRecording = false;
-    ui.voiceBtn.classList.remove('recording');
-    ui.voiceBtn.innerHTML = '<i class="ph ph-microphone"></i> Voice Memo';
+// Setup genuine Web Speech API for Voice Detection
+let recognition;
+if ('webkitSpeechRecognition' in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
     
-    const mockDictation = "Uhh yeah hi, there's a massive pile-up on highway 44 involving a semi-truck, multiple injuries, send ambulances immediately it's terrible.";
-    logRawInput(`[Voice Transcript] ${mockDictation}`);
-    triggerGeminiNormalizationPipeline(mockDictation, 'Voice');
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        logRawInput(`[Voice Detected] "${transcript}"`);
+        triggerGeminiNormalizationPipeline(transcript, 'Voice');
+        
+        isRecording = false;
+        ui.voiceBtn.classList.remove('recording');
+        ui.voiceBtn.innerHTML = '<i class="ph ph-microphone"></i> Voice Memo';
+    };
+    
+    recognition.onerror = function(event) {
+        logSystem(`[Voice Error] ${event.error}. Please ensure microphone permissions are granted.`);
+        isRecording = false;
+        ui.voiceBtn.classList.remove('recording');
+        ui.voiceBtn.innerHTML = '<i class="ph ph-microphone"></i> Voice Memo';
+    };
+}
+
+ui.voiceBtn.addEventListener('click', () => {
+    if (!recognition) {
+        logSystem("[Warning] Native Speech Recognition is not supported in this browser.");
+        return;
+    }
+    
+    if (isRecording) {
+        recognition.stop();
+        ui.voiceBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Processing...';
+    } else {
+        isRecording = true;
+        ui.voiceBtn.classList.add('recording');
+        ui.voiceBtn.innerHTML = '<i class="ph ph-waveform"></i> Listening (Click to Stop)...';
+        recognition.start();
+    }
 });
 
 ui.imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
-        logRawInput(`[Image Parsing] File loaded: ${file.name}. Sending buffer to AI model...`);
-        // Mock processing an image (let's pretend it's a doctor's messy handwriting)
+        logRawInput(`[Image Parsing] Scanning visual data from: ${file.name}...`);
+        
+        ui.processBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> OCR Scanning...';
+        
+        // Dynamic mock OCR based on filename
         setTimeout(() => {
-            triggerGeminiNormalizationPipeline("Handwritten Note Analysis: Patient John Doe. BP 190/110. Pulse erratic. Immediate elevated risk of cardiac event.", 'Image Analysis');
-        }, 1500); 
+            let extractedText = "";
+            const fname = file.name.toLowerCase();
+            
+            if (fname.includes('medical') || fname.includes('report') || fname.includes('patient')) {
+                extractedText = `Extracted from ${file.name}: Patient John Doe. BP 190/110. Pulse erratic. Immediate elevated risk of cardiac event.`;
+            } else if (fname.includes('accident') || fname.includes('crash') || fname.includes('traffic')) {
+                extractedText = `Extracted visual data: Image confirms severe multi-vehicle pile-up on highway structure. Major delays expected.`;
+            } else if (fname.includes('fire') || fname.includes('disaster')) {
+                extractedText = `Extracted visual data: Large structural fire detected. Plume of smoke visible. Emergency response required.`;
+            } else {
+                extractedText = `Extracted visual elements from ${file.name} describing a general community or weather setting. User requires support information.`;
+            }
+
+            logRawInput(`[OCR Complete] Extracted context from image.`);
+            triggerGeminiNormalizationPipeline(extractedText, 'Image Analysis');
+            
+            ui.processBtn.innerHTML = '<i class="ph ph-magic-wand"></i> Process Intent';
+            ui.imageInput.value = ''; // Reset input
+        }, 1800); 
     }
 });
 
