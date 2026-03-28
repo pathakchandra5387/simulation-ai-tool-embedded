@@ -283,6 +283,13 @@ function mockGeminiAI(messyInput) {
         output.required_action = "Reroute civilian traffic. Dispatch Patrol and Rescue units.";
         output.confidence_score = 0.92;
     }
+    else if (textLower.includes('medicine') || textLower.includes('ibuprofen') || textLower.includes('tylenol') || textLower.includes('antibiotic') || textLower.includes('pill') || textLower.includes('dosage')) {
+        output.intent = "User requires pharmaceutical administration or medication details.";
+        output.category = "Medical/Health";
+        output.priority_level = "Medium";
+        output.required_action = "Supply verified medical dosage instructions and cross-reference patient allergy database.";
+        output.confidence_score = 0.90;
+    }
     else if (textLower.includes('flood') || textLower.includes('earthquake') || textLower.includes('tornado') || textLower.includes('disaster')) {
         output.intent = "Widespread natural disaster warning.";
         output.category = "Disaster Alert";
