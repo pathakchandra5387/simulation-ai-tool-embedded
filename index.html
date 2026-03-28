@@ -8,7 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body class="dark-theme">
     
@@ -16,18 +17,23 @@
         <!-- Header area -->
         <header class="glass-panel main-header">
             <div class="logo-area">
-                <i class="ph ph-intersect"></i>
+                <span class="material-symbols-outlined">hub</span>
                 <h1>IntentBridge</h1>
             </div>
-            <div class="status-indicators">
-                <div class="status-pill active">
-                    <span class="status-dot"></span>
-                    Gemini AI Core: Online
+            <div class="header-tools" style="display: flex; gap: 1rem; align-items: center;">
+                <input type="password" id="geminiApiKey" placeholder="Paste Gemini API Key..." class="api-key-input">
+                
+                <div class="status-indicators">
+                    <button id="runDiagnosticsBtn" class="action-btn" style="border-color: rgba(234, 179, 8, 0.4);"><span class="material-symbols-outlined">bug_report</span> Stress Test</button>
+                    <div class="status-pill active" id="coreStatusPill">
+                        <span class="status-dot"></span>
+                        Mock Engine: Active
+                    </div>
+                    <!-- Real-time continuous stream toggle -->
+                    <button id="toggleStreamBtn" class="primary-btn pulse-btn">
+                        <span class="material-symbols-outlined">sensors</span> Start Data Siphon
+                    </button>
                 </div>
-                <!-- Real-time continuous stream toggle -->
-                <button id="toggleStreamBtn" class="primary-btn pulse-btn">
-                    <i class="ph ph-broadcast"></i> Start Data Stream Siphon
-                </button>
             </div>
         </header>
 
@@ -41,22 +47,22 @@
                     <textarea id="textInput" placeholder="Paste unstructured news, raw weather JSON, or type a frantic report..."></textarea>
                     
                     <div class="api-fetchers" style="display: flex; gap: 0.5rem; margin-top: -0.5rem; margin-bottom: 0.5rem;">
-                        <button id="liveWeatherBtn" class="action-btn" style="flex:1; border-color: rgba(20, 184, 166, 0.4);"><i class="ph ph-cloud-sun"></i> Fetch Live Weather API</button>
-                        <button id="liveTrafficBtn" class="action-btn" style="flex:1; border-color: rgba(239, 68, 68, 0.4);"><i class="ph ph-car-profile"></i> Alert: Live Traffic Ping</button>
+                        <button id="liveWeatherBtn" class="action-btn" style="flex:1; border-color: rgba(20, 184, 166, 0.4);"><span class="material-symbols-outlined">cloud</span> Fetch Cloud Weather API</button>
+                        <button id="liveTrafficBtn" class="action-btn" style="flex:1; border-color: rgba(239, 68, 68, 0.4);"><span class="material-symbols-outlined">directions_car</span> Alert: Traffic Ping</button>
                     </div>
                     
                     <div class="input-actions">
                         <label class="action-btn file-upload-btn" title="Upload Image / Medical Record">
-                            <i class="ph ph-image"></i> Image/Data
+                            <span class="material-symbols-outlined">image</span> Image/Data
                             <input type="file" id="imageInput" accept="image/*,.pdf,.csv">
                         </label>
                         
                         <button id="voiceBtn" class="action-btn voice-btn" title="Hold to record Voice Memo">
-                            <i class="ph ph-microphone"></i> Voice Memo
+                            <span class="material-symbols-outlined">mic</span> Voice Memo
                         </button>
                         
                         <button id="processBtn" class="primary-btn submit-btn">
-                            <i class="ph ph-magic-wand"></i> Process Intent
+                            <span class="material-symbols-outlined">auto_awesome</span> Process Intent
                         </button>
                     </div>
                 </div>
