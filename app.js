@@ -8,7 +8,9 @@ const ui = {
     processBtn: document.getElementById('processBtn'),
     rawLogStream: document.getElementById('rawLogStream'),
     actionDashboard: document.getElementById('actionDashboard'),
-    toggleStreamBtn: document.getElementById('toggleStreamBtn')
+    toggleStreamBtn: document.getElementById('toggleStreamBtn'),
+    liveWeatherBtn: document.getElementById('liveWeatherBtn'),
+    liveTrafficBtn: document.getElementById('liveTrafficBtn')
 };
 
 // State
@@ -34,16 +36,32 @@ let recognition;
 if ('webkitSpeechRecognition' in window) {
     recognition = new webkitSpeechRecognition();
     recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.interimResults = true; // Crucial for "forming the words" visibly
     
     recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        logRawInput(`[Voice Detected] "${transcript}"`);
-        triggerGeminiNormalizationPipeline(transcript, 'Voice');
+        let interimTranscript = '';
+        let finalTranscript = '';
         
-        isRecording = false;
-        ui.voiceBtn.classList.remove('recording');
-        ui.voiceBtn.innerHTML = '<i class="ph ph-microphone"></i> Voice Memo';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
+        }
+        
+        // Physically display the words forming directly in the UI textarea!
+        ui.textInput.value = finalTranscript + interimTranscript;
+        
+        if (finalTranscript) {
+            logRawInput(`[Voice Detected] "${finalTranscript}"`);
+            triggerGeminiNormalizationPipeline(finalTranscript, 'Voice');
+            
+            isRecording = false;
+            ui.voiceBtn.classList.remove('recording');
+            ui.voiceBtn.innerHTML = '<i class="ph ph-microphone"></i> Voice Memo';
+            setTimeout(() => { ui.textInput.value = ''; }, 1000); // Clear after delay
+        }
     };
     
     recognition.onerror = function(event) {
@@ -111,6 +129,38 @@ ui.imageInput.addEventListener('change', (e) => {
             ui.processBtn.innerHTML = '<i class="ph ph-magic-wand"></i> Process Intent';
         }, 1800); 
     }
+});
+
+// ============================================
+// 1.5 Live API Button Handlers
+// ============================================
+
+ui.liveWeatherBtn?.addEventListener('click', async () => {
+    ui.liveWeatherBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Fetching...';
+    try {
+        // Fetch real, live weather data from Open-Meteo API
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.71&longitude=-74.01&current_weather=true');
+        const data = await res.json();
+        const weatherString = `RAW SENSOR JSON DUMP: ${JSON.stringify(data.current_weather)}. Anomalous critical severity storm approaching. Evacuation recommended.`;
+        
+        ui.textInput.value = weatherString;
+        logRawInput(`[Live Weather API] Node data acquired.`);
+        triggerGeminiNormalizationPipeline(weatherString, 'Live Weather Node');
+    } catch(err) {
+        logSystem("[API Error] Weather node unreachable.");
+    }
+    ui.liveWeatherBtn.innerHTML = '<i class="ph ph-cloud-sun"></i> Fetch Live Weather API';
+});
+
+ui.liveTrafficBtn?.addEventListener('click', () => {
+    ui.liveTrafficBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Pinging...';
+    setTimeout(() => {
+        const trafficData = "TRAFFIC SENSOR 44: Interstate speed dropped instantly to 0mph. Major pile-up detected at exit 14. 5 casualties reported via localized trauma signatures.";
+        ui.textInput.value = trafficData;
+        logRawInput(`[Live Traffic API] Critical anomaly detected.`);
+        triggerGeminiNormalizationPipeline(trafficData, 'Traffic API');
+        ui.liveTrafficBtn.innerHTML = '<i class="ph ph-car-profile"></i> Alert: Live Traffic Ping';
+    }, 1200);
 });
 
 // ============================================
