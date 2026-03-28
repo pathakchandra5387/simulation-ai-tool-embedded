@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntentBridge | Multimodal AI Universal Bridge</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="dark-theme">
+    
+    <div class="app-container">
+        <!-- Header area -->
+        <header class="glass-panel main-header">
+            <div class="logo-area">
+                <i class="ph ph-intersect"></i>
+                <h1>IntentBridge</h1>
+            </div>
+            <div class="status-indicators">
+                <div class="status-pill active">
+                    <span class="status-dot"></span>
+                    Gemini AI Core: Online
+                </div>
+                <!-- Real-time continuous stream toggle -->
+                <button id="toggleStreamBtn" class="primary-btn pulse-btn">
+                    <i class="ph ph-broadcast"></i> Start Data Stream Siphon
+                </button>
+            </div>
+        </header>
+
+        <main class="dashboard-layout">
+            <!-- Left Panel: Omni-Input & Logs -->
+            <section class="input-section glass-panel">
+                <h2>Multimodal Ingestion Engine</h2>
+                <p class="section-desc">Upload messy reality. We handle the rest.</p>
+                
+                <div class="omni-input-area">
+                    <textarea id="textInput" placeholder="Paste unstructured news, raw weather JSON, or type a frantic report..."></textarea>
+                    
+                    <div class="input-actions">
+                        <label class="action-btn file-upload-btn" title="Upload Image / Medical Record">
+                            <i class="ph ph-image"></i> Image/Data
+                            <input type="file" id="imageInput" accept="image/*,.pdf,.csv">
+                        </label>
+                        
+                        <button id="voiceBtn" class="action-btn voice-btn" title="Hold to record Voice Memo">
+                            <i class="ph ph-microphone"></i> Voice Memo
+                        </button>
+                        
+                        <button id="processBtn" class="primary-btn submit-btn">
+                            <i class="ph ph-magic-wand"></i> Process Intent
+                        </button>
+                    </div>
+                </div>
+
+                <div class="raw-log-area">
+                    <h3>Raw Input Stream (Pre-normalization)</h3>
+                    <div id="rawLogStream" class="log-stream">
+                        <!-- Raw inputs log here -->
+                        <div class="log-entry system-msg">System initialized. Awaiting chaotic inputs...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Structured Dashboard -->
+            <section class="output-section">
+                <div class="section-header">
+                    <h2>Continuous Action Board</h2>
+                    <div class="filter-pills">
+                        <span class="filter-pill active">All Priorities</span>
+                        <span class="filter-pill critical">Critical (Life-Saving)</span>
+                    </div>
+                </div>
+                
+                <div id="actionDashboard" class="action-grid">
+                    <!-- Cards will be generated via JS based on the 5-point JSON schema -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
