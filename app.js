@@ -47,16 +47,28 @@ if ('webkitSpeechRecognition' in window) {
     };
     
     recognition.onerror = function(event) {
-        logSystem(`[Voice Error] ${event.error}. Please ensure microphone permissions are granted.`);
+        // Fallback if browser blocks HTTPS mic check or something fails
+        logSystem(`[Voice Error] ${event.error}. Microphone access blocked. Engaging text fallback for testing.`);
         isRecording = false;
         ui.voiceBtn.classList.remove('recording');
         ui.voiceBtn.innerHTML = '<i class="ph ph-microphone"></i> Voice Memo';
+        
+        const manualVoice = prompt("Microphone blocked. Type what you wanted to dictate:");
+        if (manualVoice) {
+            logRawInput(`[Voice Transcript Fallback] "${manualVoice}"`);
+            triggerGeminiNormalizationPipeline(manualVoice, 'Voice');
+        }
     };
 }
 
 ui.voiceBtn.addEventListener('click', () => {
     if (!recognition) {
-        logSystem("[Warning] Native Speech Recognition is not supported in this browser.");
+        logSystem("[Warning] Native Speech Recognition is not supported. Engaging fallback.");
+        const manualVoice = prompt("Microphone not supported in this browser. Type your voice command:");
+        if (manualVoice) {
+            logRawInput(`[Voice Transcript Fallback] "${manualVoice}"`);
+            triggerGeminiNormalizationPipeline(manualVoice, 'Voice');
+        }
         return;
     }
     
@@ -66,7 +78,7 @@ ui.voiceBtn.addEventListener('click', () => {
     } else {
         isRecording = true;
         ui.voiceBtn.classList.add('recording');
-        ui.voiceBtn.innerHTML = '<i class="ph ph-waveform"></i> Listening (Click to Stop)...';
+        ui.voiceBtn.innerHTML = '<i class="ph ph-waveform"></i> Listening...';
         recognition.start();
     }
 });
@@ -74,15 +86,15 @@ ui.voiceBtn.addEventListener('click', () => {
 ui.imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+        const fname = file.name.toLowerCase();
         logRawInput(`[Image Parsing] Scanning visual data from: ${file.name}...`);
         
+        // Immediate reset so same file can be clicked again
+        e.target.value = '';
         ui.processBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> OCR Scanning...';
         
-        // Dynamic mock OCR based on filename
         setTimeout(() => {
             let extractedText = "";
-            const fname = file.name.toLowerCase();
-            
             if (fname.includes('medical') || fname.includes('report') || fname.includes('patient')) {
                 extractedText = `Extracted from ${file.name}: Patient John Doe. BP 190/110. Pulse erratic. Immediate elevated risk of cardiac event.`;
             } else if (fname.includes('accident') || fname.includes('crash') || fname.includes('traffic')) {
@@ -90,14 +102,13 @@ ui.imageInput.addEventListener('change', (e) => {
             } else if (fname.includes('fire') || fname.includes('disaster')) {
                 extractedText = `Extracted visual data: Large structural fire detected. Plume of smoke visible. Emergency response required.`;
             } else {
-                extractedText = `Extracted visual elements from ${file.name} describing a general community or weather setting. User requires support information.`;
+                extractedText = `Extracted visual elements from ${file.name} describing a general community setting. Review required.`;
             }
 
-            logRawInput(`[OCR Complete] Extracted context from image.`);
+            logRawInput(`[OCR Complete] Context extracted from image payload.`);
             triggerGeminiNormalizationPipeline(extractedText, 'Image Analysis');
             
             ui.processBtn.innerHTML = '<i class="ph ph-magic-wand"></i> Process Intent';
-            ui.imageInput.value = ''; // Reset input
         }, 1800); 
     }
 });
@@ -218,12 +229,28 @@ const priorityWeights = {
     "Low": 1 
 };
 
+let currentFilter = 'All';
+
+// Wire up the critical priority filter pills
+document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.classList.contains('critical') ? 'Critical' : 'All';
+        renderPrioritizedDashboard();
+    });
+});
+
 function renderPrioritizedDashboard() {
     ui.actionDashboard.innerHTML = '';
     
-    // CORE REQUIREMENT: Ensure the app prioritizes life-saving and high-impact scenarios
-    // Sort logic: Highest priority weight first. If tie, newest first.
-    const sortedIntents = [...parsedIntentsList].sort((a, b) => {
+    // Filter out non-critical if Critical tab is active
+    let filteredList = currentFilter === 'Critical' 
+        ? parsedIntentsList.filter(item => item.priority_level === 'Critical') 
+        : parsedIntentsList;
+    
+    // Sort logic: Highest priority weight first.
+    const sortedIntents = [...filteredList].sort((a, b) => {
         const weightA = priorityWeights[a.priority_level] || 0;
         const weightB = priorityWeights[b.priority_level] || 0;
         return weightB - weightA;
